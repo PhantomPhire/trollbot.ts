@@ -1,0 +1,3 @@
+[submodule "DiscordBotUtils"]
+	path = DiscordBotUtils
+	url = https://github.com/PhantomPhire/DiscordBotUtils.git
