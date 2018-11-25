@@ -65,3 +65,4 @@ core
 config.json
 npm-debug.log
 dist
+roasts.txt
