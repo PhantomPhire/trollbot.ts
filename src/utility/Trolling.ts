@@ -141,7 +141,7 @@ export abstract class Trolling {
 
         let player = GuildAudioPlayer.getGuildAudioPlayer(member.guild.id);
         let sound = SoundFileManager.getRandomFileSound();
-        if (player != null && sound !== undefined && !player.playing) {
+        if (player != null && sound !== undefined && !player.playing && player.connected) {
             player.add(sound);
             player.play();
         }
