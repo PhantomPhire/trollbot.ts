@@ -3,12 +3,6 @@
  */
 export abstract class TrollBotConstants {
     /**
-     * The guild Id of the Oklhoma Melee Discord.
-     * @constant
-     */
-    public static readonly oklahomaMeleeDiscordId: string = "289489728615743488";
-
-    /**
      * The path to the root of the application.
      * @constant
      */
