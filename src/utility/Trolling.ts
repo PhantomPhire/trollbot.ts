@@ -139,11 +139,13 @@ export abstract class Trolling {
             return;
         }
 
-        let player = GuildAudioPlayer.getGuildAudioPlayer(member.guild.id);
-        let sound = SoundFileManager.getRandomFileSound();
-        if (player != null && sound !== undefined && !player.playing && player.connected) {
-            player.add(sound);
-            player.play();
+        if (speaking) {
+            let player = GuildAudioPlayer.getGuildAudioPlayer(member.guild.id);
+            let sound = SoundFileManager.getRandomFileSound();
+            if (player != null && sound !== undefined && !player.playing && player.connected) {
+                player.add(sound);
+                player.play();
+            }
         }
     }
 }
