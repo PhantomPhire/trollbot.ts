@@ -13,4 +13,10 @@ export abstract class TrollBotConstants {
      * @constant
      */
     public static readonly roastsPath: string = TrollBotConstants.rootPath + "roasts.txt";
+
+    /**
+     * The path to the suggestions text file.
+     * @constant
+     */
+    public static readonly suggestionsPath: string = TrollBotConstants.rootPath + "suggestions.txt";
 }
