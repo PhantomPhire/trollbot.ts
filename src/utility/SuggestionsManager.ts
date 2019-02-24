@@ -1,4 +1,3 @@
-import {Collection} from "discord.js";
 import {TrollBotConstants} from "../Constants";
 import fs = require("fs");
 
@@ -15,7 +14,9 @@ export abstract class SuggestionsManager {
     /**
      * The internal collection of suggestions.
      */
-    private static _suggestions: Collection<number, string> = new Collection<number, string>();
+    /*private static _suggestions: Collection<number, string> = new Collection<number, string>();*/
+
+    private static _suggestions: Array<string> = new Array<string>();
 
     /**
      * Initializes the suggestions repository.
@@ -29,12 +30,12 @@ export abstract class SuggestionsManager {
      * @param suggestion The suggestions to add.
      */
     public static addsuggestion(suggestion: string): boolean | undefined {
-        let listSize: number = SuggestionsManager._suggestions.size;
+        let listSize: number = SuggestionsManager._suggestions.length;
         for (let x: number = 0; x < listSize; x++) {
-            if (suggestion.toLowerCase() == SuggestionsManager._suggestions.get(x)!.toLowerCase())
+            if (suggestion.toLowerCase() == SuggestionsManager._suggestions[x].toLowerCase())
                 return false;
         }
-        SuggestionsManager._suggestions.set(this._suggestions.size, suggestion);
+        SuggestionsManager._suggestions[this._suggestions.length] = suggestion;
         fs.appendFileSync(TrollBotConstants.suggestionsPath, "~\n" + suggestion);
         return true;
     }
@@ -44,10 +45,10 @@ export abstract class SuggestionsManager {
      * @param suggestion The suggestion to remove.
      */
     public static removesuggestion(suggestion: string): boolean | undefined {
-        let listSize: number = SuggestionsManager._suggestions.size;
+        let listSize: number = SuggestionsManager._suggestions.length;
         for (let x: number = 0; x < listSize; x++) {
-            if (suggestion.toLowerCase() == SuggestionsManager._suggestions.get(x)!.toLowerCase()) {
-                SuggestionsManager._suggestions.delete(x);
+            if (suggestion.toLowerCase() == SuggestionsManager._suggestions[x].toLowerCase()) {
+                SuggestionsManager._suggestions.splice(x, 1);
                 this.updateFile();
                 return true;
             }
@@ -60,9 +61,9 @@ export abstract class SuggestionsManager {
      */
     public static updateFile() {
         let fileString = "";
-        let listSize: number = SuggestionsManager._suggestions.size;
+        let listSize: number = SuggestionsManager._suggestions.length;
         for (let x: number = 0; x < listSize; x++) {
-            fileString = fileString + "~\n" + SuggestionsManager._suggestions.get(x);
+            fileString = fileString + "~\n" + SuggestionsManager._suggestions[x];
         }
         fs.writeFileSync(TrollBotConstants.suggestionsPath, fileString);
     }
@@ -71,13 +72,14 @@ export abstract class SuggestionsManager {
      * Gets all suggestions in the list.
      */
     public static getsuggestions(): string | undefined {
-        let listSize: number = SuggestionsManager._suggestions.size;
+        let listSize: number = SuggestionsManager._suggestions.length;
         if (listSize > 0) {
             let stringToReturn: string = "";
             for (let x: number = 0; x < listSize; x++) {
-                stringToReturn = stringToReturn + SuggestionsManager._suggestions.get(x) + "\n";
+                stringToReturn = stringToReturn + SuggestionsManager._suggestions[x] + "\n";
             }
             return stringToReturn;
+
         }
         return undefined;
     }
@@ -86,12 +88,13 @@ export abstract class SuggestionsManager {
      * Reads in the suggestions file from memory.
      */
     private static readsuggestionsFile() {
-        SuggestionsManager._suggestions.clear();
+
+        SuggestionsManager._suggestions = [];
 
         fs.readFile(TrollBotConstants.suggestionsPath, (error, data) => {
             let suggestions = data.toString().split(delimiter);
             for (let i = 0; i < suggestions.length; i++) {
-                SuggestionsManager._suggestions.set(i, suggestions[i]);
+                SuggestionsManager._suggestions[i] = suggestions[i];
             }
         });
     }
