@@ -3,19 +3,25 @@ import {CommandoClient} from "discord.js-commando";
 import {BotManager, GuildAudioPlayer, SoundFileManager} from "../DiscordBotUtils";
 import {RoastManager} from "./utility/RoastManager";
 import {Trolling} from "./utility/Trolling";
-import {SuggestionsManager} from "./utility/SuggestionsManager";
+import {AprilFoolsManager} from "./utility/AprilFoolsManager";
 
 /**
  * A wrapper for the TrollBot, managing its events and internals
  */
 export class TrollBotManager extends BotManager {
+
+    /**
+     * The login manager for keeping the bot online.
+     */
+    private _foolManager?: AprilFoolsManager;
+
     /**
      * Initializes a new instance of the TrollBotManager.
      */
     constructor() {
         super(new CommandoClient({ commandPrefix: (<any>config).prefix, owner: (<any>config).owner }));
         RoastManager.initialize();
-        SuggestionsManager.initialize();
+        this._foolManager = new AprilFoolsManager(this._bot);
         let soundConfig = (<any>config).soundPath as string | undefined;
         if (soundConfig !== undefined) {
             SoundFileManager.initialize((<any>config).soundPath);
@@ -34,7 +40,6 @@ export class TrollBotManager extends BotManager {
         this._bot.registry.registerGroup("trolling", "Trolling");
         this._bot.registry.registerGroup("roasts", "Roasts");
         this._bot.registry.registerGroup("sounds", "Sounds");
-        this._bot.registry.registerGroup("suggestions", "Suggestions");
         this._bot.registry.registerDefaults();
         this._bot.registry.registerCommandsIn(__dirname + "/commands");
     }
