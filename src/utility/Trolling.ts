@@ -1,4 +1,4 @@
-import {Channel, Guild, GuildMember, Message, TextChannel, User} from "discord.js";
+import {Channel, Guild, GuildMember, Message, TextChannel, User, VoiceChannel} from "discord.js";
 import {CommandoClient} from "discord.js-commando";
 import {ClientAccess, GuildAudioPlayer, SoundFileManager} from "../../DiscordBotUtils";
 import {RoastManager} from "./RoastManager";
@@ -99,6 +99,10 @@ export abstract class Trolling {
         if (newMember.guild == null ||
             !Trolling._trackedMembers.has(newMember.guild.id) ||
             newMember.id !== Trolling._trackedMembers.get(newMember.guild.id)) {
+
+            if (newMember.voiceChannel != null) {
+                this.playGreeting(newMember.voiceChannel);
+            }
             return;
         }
 
@@ -117,6 +121,22 @@ export abstract class Trolling {
             }
             else {
                 player.join(newMember.voiceChannel);
+            }
+        }
+    }
+
+    /**
+     * Play's Matt's greeting on a voice channel
+     * @param channel The channel to join and play a greeting on
+     */
+    private static playGreeting(channel: VoiceChannel) {
+        let player = GuildAudioPlayer.getGuildAudioPlayer(channel.guild.id);
+        if (player != null) {
+            player.join(channel);
+            let sound = SoundFileManager.getFileSound("oh_shiiit");
+            if (sound != null) {
+                player.add(sound);
+                player.play();
             }
         }
     }
