@@ -101,7 +101,15 @@ export abstract class Trolling {
             newMember.id !== Trolling._trackedMembers.get(newMember.guild.id)) {
 
             if (newMember.voiceChannel != null) {
-                this.playGreeting(newMember.voiceChannel);
+                let player = GuildAudioPlayer.getGuildAudioPlayer(newMember.voiceChannel.guild.id);
+                if (player != null) {
+                    player.join(newMember.voiceChannel);
+                    let sound = SoundFileManager.getFileSound("oh_shiiit");
+                    if (sound != null) {
+                        player.add(sound);
+                        player.play();
+                    }
+                }
             }
             return;
         }
@@ -121,22 +129,6 @@ export abstract class Trolling {
             }
             else {
                 player.join(newMember.voiceChannel);
-            }
-        }
-    }
-
-    /**
-     * Play's Matt's greeting on a voice channel
-     * @param channel The channel to join and play a greeting on
-     */
-    private static playGreeting(channel: VoiceChannel) {
-        let player = GuildAudioPlayer.getGuildAudioPlayer(channel.guild.id);
-        if (player != null) {
-            player.join(channel);
-            let sound = SoundFileManager.getFileSound("oh_shiiit");
-            if (sound != null) {
-                player.add(sound);
-                player.play();
             }
         }
     }
