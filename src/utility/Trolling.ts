@@ -27,6 +27,7 @@ export abstract class Trolling {
         bot.on("typingStart", Trolling.onUserTyping);
         bot.on("voiceStateUpdate", Trolling.onMemberVoiceStateChanged);
         bot.on("guildMemberSpeaking", Trolling.onMemberSpeaking);
+        Trolling.setFoolTimeout();
     }
 
     /**
@@ -109,15 +110,7 @@ export abstract class Trolling {
             !Trolling._trackedMembers.has(newMember.guild.id) ||
             newMember.id !== Trolling._trackedMembers.get(newMember.guild.id)) {
 
-            if (newMember.voiceChannel != null && !newMember.user.bot && !Trolling._trackedMembers.has(newMember.guild.id)) {
-                let player = GuildAudioPlayer.getGuildAudioPlayer(newMember.voiceChannel.guild.id);
-                player.boundVoiceChannel = newMember.voiceChannel;
-                player.joinAndPlay = true;
-                let sound = SoundFileManager.getFileSound("oh_shiiit");
-                if (sound != undefined) {
-                    player.add(sound);
-                }
-            }
+            Trolling.trySendGreeting(oldMember, newMember);
             return;
         }
 
@@ -136,6 +129,27 @@ export abstract class Trolling {
             }
             else {
                 player.join(newMember.voiceChannel);
+            }
+        }
+    }
+
+    /**
+     * Tries to send a greeting to a member if they just joined a voice channel.
+     * @param oldMember The member's old voice state.
+     * @param newMember The member's new voice state.
+     */
+    private static trySendGreeting(oldMember: GuildMember, newMember: GuildMember) {
+        if (newMember.voiceChannel != null &&
+            oldMember.voiceChannel != newMember.voiceChannel &&
+            !newMember.user.bot &&
+            !Trolling._trackedMembers.has(newMember.guild.id)) {
+
+            let player = GuildAudioPlayer.getGuildAudioPlayer(newMember.voiceChannel.guild.id);
+            player.boundVoiceChannel = newMember.voiceChannel;
+            player.joinAndPlay = true;
+            let sound = SoundFileManager.getFileSound("oh_shiiit");
+            if (sound != undefined) {
+                player.add(sound);
             }
         }
     }
