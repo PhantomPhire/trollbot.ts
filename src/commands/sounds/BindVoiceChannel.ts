@@ -37,7 +37,7 @@ class BindVoiceChannel extends Command {
      * @param args The command arguments.
      * @param fromPattern Whether or not the command is being run from a pattern match.
      */
-    public async run(msg: CommandMessage, args: string, fromPattern: boolean): Promise<Message | Message[] | void> {
+    public async run(msg: CommandMessage, args: string, fromPattern: boolean): Promise<Message | Message[]> {
         let userArgs: string[] | undefined = args.split(" ");
 
         let sGuild = GuildAudioPlayer.getGuildAudioPlayer(msg.guild.id);

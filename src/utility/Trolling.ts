@@ -1,4 +1,4 @@
-import {Channel, Guild, GuildMember, Message, TextChannel, User, VoiceChannel} from "discord.js";
+import {Channel, Client, Guild, GuildMember, Message, TextChannel, User, VoiceChannel} from "discord.js";
 import {CommandoClient} from "discord.js-commando";
 import {ClientAccess, GuildAudioPlayer, SoundFileManager} from "../../DiscordBotUtils";
 import {RoastManager} from "./RoastManager";
@@ -13,10 +13,16 @@ export abstract class Trolling {
     private static _trackedMembers: Map<string, string> = new Map<string, string>();
 
     /**
+     * The Discord bot client to utilize.
+     */
+    private static _client: Client;
+
+    /**
      * Adds trolling based listeners to a Discord Bot.
      * @param bot The bot client to add the listeners to.
      */
     public static addListeners(bot: CommandoClient) {
+        this._client = bot;
         bot.on("message", Trolling.onMessageReceived);
         bot.on("typingStart", Trolling.onUserTyping);
         bot.on("voiceStateUpdate", Trolling.onMemberVoiceStateChanged);
@@ -33,6 +39,9 @@ export abstract class Trolling {
             return;
         }
 
+        let player = GuildAudioPlayer.getGuildAudioPlayer(member.guild.id);
+        player.joinAndPlay = false;
+
         if (Trolling._trackedMembers.has(member.guild.id)) {
             Trolling._trackedMembers.delete(member.guild.id);
         }
@@ -48,8 +57,8 @@ export abstract class Trolling {
      * @param guild The guild to stop trolling on.
      */
     public static stopTrolling(guild: Guild) {
-        if (guild != null && this._trackedMembers.has(guild.id)) {
-            this._trackedMembers.delete(guild.id);
+        if (guild != null && Trolling._trackedMembers.has(guild.id)) {
+            Trolling._trackedMembers.delete(guild.id);
 
             if (ClientAccess.client()!.voiceConnections.has(guild.id)) {
                 let player = GuildAudioPlayer.getGuildAudioPlayer(guild.id);
@@ -100,15 +109,13 @@ export abstract class Trolling {
             !Trolling._trackedMembers.has(newMember.guild.id) ||
             newMember.id !== Trolling._trackedMembers.get(newMember.guild.id)) {
 
-            if (newMember.voiceChannel != null) {
+            if (newMember.voiceChannel != null && !newMember.user.bot && !Trolling._trackedMembers.has(newMember.guild.id)) {
                 let player = GuildAudioPlayer.getGuildAudioPlayer(newMember.voiceChannel.guild.id);
-                if (player != null) {
-                    player.join(newMember.voiceChannel);
-                    let sound = SoundFileManager.getFileSound("oh_shiiit");
-                    if (sound != null) {
-                        player.add(sound);
-                        player.play();
-                    }
+                player.boundVoiceChannel = newMember.voiceChannel;
+                player.joinAndPlay = true;
+                let sound = SoundFileManager.getFileSound("oh_shiiit");
+                if (sound != undefined) {
+                    player.add(sound);
                 }
             }
             return;
@@ -157,6 +164,60 @@ export abstract class Trolling {
             if (player != null && sound !== undefined && !player.playing && player.connected) {
                 player.add(sound);
                 player.play();
+            }
+        }
+    }
+
+    /**
+     * Starts the foolishness
+     */
+    private static setFoolTimeout() {
+        let random = Math.random() * 60000 * 30;
+
+        // Wait a random amount of time and then do stuff
+        setTimeout(() => {
+            let date = new Date();
+
+            if (date.getMonth() === 3 && date.getDay() < 6) {
+                this._client.guilds.forEach(this.trollGuild);
+            }
+
+            this.setFoolTimeout();
+        },         random);
+    }
+
+    /**
+     * Trolls a single guild
+     */
+    private static trollGuild(guild: Guild, key: string, map: Map<string, Guild>) {
+        if (guild.channels == null) {
+            console.log("Guild doesn't have channels?!");
+            return;
+        }
+
+        if (Trolling._trackedMembers.has(guild.id)) {
+            return;
+        }
+
+        let channels = guild.channels!.array();
+        let sound = SoundFileManager.getRandomFileSound();
+
+        if (sound == null) {
+            return;
+        }
+
+        for (let i = 0; i < channels.length; i++) {
+            if (channels[i].type != "voice") {
+                continue;
+            }
+
+            if ((channels[i] as VoiceChannel).members.size > 0) {
+                let player = GuildAudioPlayer.getGuildAudioPlayer(guild.id);
+                player.joinAndPlay = true;
+                player.boundVoiceChannel = channels[i] as VoiceChannel;
+
+                player.add(sound);
+                break;
             }
         }
     }
