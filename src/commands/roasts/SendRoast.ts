@@ -21,17 +21,6 @@ export class SendRoast extends Command {
     }
 
     /**
-     * Tests the command for proper permissions.
-     * @param msg The message that was posted.
-     */
-    public hasPermission(msg: CommandoMessage): boolean {
-        if (msg.member == undefined) {
-            return true;
-        }
-        return msg.member.hasPermission("ADMINISTRATOR");
-    }
-
-    /**
      * Runs the command.
      * @param msg The command message.
      * @param args The command arguments.
