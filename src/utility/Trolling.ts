@@ -1,6 +1,6 @@
 import {Channel, Client, Guild, GuildMember, Message, TextChannel, User, VoiceChannel} from "discord.js";
 import {CommandoClient} from "discord.js-commando";
-import {ClientAccess, GuildAudioPlayer, SoundFileManager} from "../../DiscordBotUtils";
+import {ClientAccess, GuildAudioPlayer, SoundFileManager} from "discord-shine";
 import {RoastManager} from "./RoastManager";
 
 /**
@@ -24,7 +24,8 @@ export abstract class Trolling {
     public static addListeners(bot: CommandoClient) {
         this._client = bot;
         bot.on("message", Trolling.onMessageReceived);
-        bot.on("typingStart", Trolling.onUserTyping);
+        // Temporarily removing until configurable
+        // bot.on("typingStart", Trolling.onUserTyping);
         bot.on("voiceStateUpdate", Trolling.onMemberVoiceStateChanged);
         bot.on("guildMemberSpeaking", Trolling.onMemberSpeaking);
         Trolling.setFoolTimeout();
@@ -48,7 +49,7 @@ export abstract class Trolling {
         }
         Trolling._trackedMembers.set(member.guild.id, member.id);
 
-        if (member.voiceChannel != null) {
+        if (member.voice.channel != null) {
             Trolling.onMemberVoiceStateChanged(member, member);
         }
     }
@@ -73,13 +74,13 @@ export abstract class Trolling {
      * @param message The message received.
      */
     private static onMessageReceived(message: Message) {
-        if (message.member == null) {
+        if (message.member == null || message.guild == null) {
             return;
         }
 
         let diceRoll = Math.random() * 1000;
         if (diceRoll <= 10 && message.author.username != "Troll") {
-            let roast = RoastManager.getRoast(message.member.toString());
+            let roast = RoastManager.getRoast(message.member.toString(), message.guild);
             if (roast !== undefined) {
                 message.channel.send(roast);
             }
@@ -115,20 +116,20 @@ export abstract class Trolling {
         }
 
         // No need to do anything if we're already connected to the same channel
-        if (newMember.voiceChannel != null && ClientAccess.client()!.voiceConnections.has(newMember.guild.id)) {
+        if (newMember.voice.channel != null && ClientAccess.client()!.voiceConnections.has(newMember.guild.id)) {
             let connection = ClientAccess.client()!.voiceConnections.get(newMember.guild.id);
-            if (connection!.channel.id === newMember.voiceChannel.id) {
+            if (connection!.channel.id === newMember.voice.channel.id) {
                 return;
             }
         }
 
         let player = GuildAudioPlayer.getGuildAudioPlayer(newMember.guild.id);
         if (player != null) {
-            if (newMember.voiceChannel == null) {
+            if (newMember.voice.channel == null) {
                 player.leave();
             }
             else {
-                player.join(newMember.voiceChannel);
+                player.join(newMember.voice.channel);
             }
         }
     }
@@ -139,13 +140,13 @@ export abstract class Trolling {
      * @param newMember The member's new voice state.
      */
     private static trySendGreeting(oldMember: GuildMember, newMember: GuildMember) {
-        if (newMember.voiceChannel != null &&
-            oldMember.voiceChannel != newMember.voiceChannel &&
+        if (newMember.voice.channel != null &&
+            oldMember.voice.channel != newMember.voice.channel &&
             !newMember.user.bot &&
             !Trolling._trackedMembers.has(newMember.guild.id)) {
 
-            let player = GuildAudioPlayer.getGuildAudioPlayer(newMember.voiceChannel.guild.id);
-            player.boundVoiceChannel = newMember.voiceChannel;
+            let player = GuildAudioPlayer.getGuildAudioPlayer(newMember.voice.channel.guild.id);
+            player.boundVoiceChannel = newMember.voice.channel;
             player.joinAndPlay = true;
             let sound = SoundFileManager.getFileSound("oh_shiiit");
             if (sound != undefined) {

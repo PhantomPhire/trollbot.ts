@@ -1,6 +1,7 @@
-import {Collection} from "discord.js";
+import {Collection, Guild} from "discord.js";
 import {TrollBotConstants} from "../Constants";
 import fs = require("fs");
+import {ClientAccess} from "discord-shine";
 
 /**
  * Defines the delimiter to separate roasts in file
@@ -19,13 +20,18 @@ const usernamePlaceholder: string = "%USERNAME%";
 const usernameShorthandPlaceholder: string = "%U%";
 
 /**
+ * The default roast to start every guild with
+ */
+const quintessentialImmatureRoast: string = "No u";
+
+/**
  * A static repository for holding roasts for TrollBot
  */
 export abstract class RoastManager {
     /**
      * The internal collection of roasts.
      */
-    private static _roasts: Collection<number, string> = new Collection<number, string>();
+    private static _roasts: Collection<string, Collection<number, string>> = new Collection<string, Collection<number, string>>();
 
     /**
      * Initializes the roast repository.
@@ -37,19 +43,33 @@ export abstract class RoastManager {
     /**
      * Adds a roast to the file and saves the file.
      * @param roast The roast to add.
+     * @param guild The guild to add the roast for.
      */
-    public static addRoast(roast: string) {
-        RoastManager._roasts.set(this._roasts.size, roast);
-        fs.appendFileSync(TrollBotConstants.roastsPath, "~\n" + roast);
+    public static addRoast(roast: string, guild: Guild) {
+        if (!RoastManager._roasts.has(guild.id)) {
+            RoastManager.addGuild(guild);
+        }
+
+        RoastManager._roasts.get(guild.id)!.set(this._roasts.size, roast);
+        RoastManager.writeRoastsFile();
     }
 
     /**
      * Gets a random roast with correct formatting.
      * @param username The username to substitute in.
+     * @param guild The guild to get the roast for.
      */
-    public static getRoast(username: string): string | undefined {
-        if (RoastManager._roasts.size > 0) {
-            return RoastManager._roasts.random().replace(usernamePlaceholder, username).replace(usernameShorthandPlaceholder, username);
+    public static getRoast(username: string, guild: Guild): string | undefined {
+        if (RoastManager._roasts.has(guild.id)) {
+            this.addGuild(guild);
+        }
+
+        let roastGuild = RoastManager._roasts.get(guild.id);
+        if (roastGuild!.size > 0) {
+            let randomRoast = roastGuild!.random();
+            if (randomRoast != undefined) {
+                return randomRoast.replace(usernamePlaceholder, username).replace(usernameShorthandPlaceholder, username);
+            }
         }
         return undefined;
     }
@@ -60,11 +80,38 @@ export abstract class RoastManager {
     private static readRoastFile() {
         RoastManager._roasts.clear();
 
+        if (!fs.existsSync(TrollBotConstants.roastsPath)) {
+            return;
+        }
+
         fs.readFile(TrollBotConstants.roastsPath, (error, data) => {
             let roasts = data.toString().split(delimiter);
+            let newRoasts = new Collection<number, string>();
             for (let i = 0; i < roasts.length; i++) {
-                RoastManager._roasts.set(i, roasts[i]);
+                newRoasts.set(i, roasts[i]);
             }
+
+            RoastManager._roasts.set("181991219813941248", newRoasts);
         });
+    }
+
+    /**
+     * Writes the current roasts to file
+     */
+    private static writeRoastsFile() {
+        fs.writeFileSync(TrollBotConstants.rootPath + "roasts.json", JSON.stringify(RoastManager._roasts));
+    }
+
+    /**
+     * Adds a guild to the guild roast map
+     * @param guild The guild to add to the map
+     */
+    private static addGuild(guild: Guild) {
+        if (RoastManager._roasts.has(guild.id))
+            return;
+
+        let newGuild = new Collection<number, string>();
+        newGuild.set(0, quintessentialImmatureRoast);
+        RoastManager._roasts.set(guild.id, newGuild);
     }
 }
