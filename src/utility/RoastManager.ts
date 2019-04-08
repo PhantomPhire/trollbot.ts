@@ -61,12 +61,9 @@ export abstract class RoastManager {
      * @param guild The guild to get the roast for.
      */
     public static getRoast(username: string, guild: Guild): string | undefined {
-        if (RoastManager._roasts.has(guild.id)) {
-            this.addGuild(guild);
+        if (!RoastManager._roasts.has(guild.id)) {
+            RoastManager.addGuild(guild);
         }
-
-        if (!RoastManager._roasts.has(guild.id))
-        RoastManager.addGuild(guild);
 
         let roastGuild = RoastManager._roasts.get(guild.id);
         if (roastGuild!.size > 0) {
