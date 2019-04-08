@@ -2,6 +2,7 @@ import {Collection, Guild} from "discord.js";
 import {TrollBotConstants} from "../Constants";
 import fs = require("fs");
 import {ClientAccess} from "discord-shine";
+import {RoastsSaveState} from "./RoastsSaveSate";
 
 /**
  * Defines the delimiter to separate roasts in file
@@ -99,7 +100,17 @@ export abstract class RoastManager {
      * Writes the current roasts to file
      */
     private static writeRoastsFile() {
-        fs.writeFileSync(TrollBotConstants.rootPath + "roasts.json", JSON.stringify(RoastManager._roasts));
+        let roastsSaveState = new Array<RoastsSaveState>();
+
+        RoastManager._roasts.forEach((value: Collection<number, string>, key: string, map: Map<string, Collection<number, string>>) => {
+            let state = new RoastsSaveState(key, new Array<string>());
+            value.forEach((value: string, key: number, map: Map<number, string>) => {
+                state.Roasts.push(value);
+            });
+            roastsSaveState.push(state);
+        });
+
+        fs.writeFileSync(TrollBotConstants.rootPath + "roasts.json", JSON.stringify(roastsSaveState));
     }
 
     /**
