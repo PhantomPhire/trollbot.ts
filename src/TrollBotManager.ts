@@ -1,6 +1,6 @@
 import * as config from "../../config.json";
 import {CommandoClient} from "discord.js-commando";
-import {BotManager, GuildAudioPlayer, SoundFileManager} from "../DiscordBotUtils";
+import {BotManager, GuildAudioPlayer, SoundFileManager} from "discord-shine";
 import {RoastManager} from "./utility/RoastManager";
 import {Trolling} from "./utility/Trolling";
 
@@ -42,7 +42,10 @@ export class TrollBotManager extends BotManager {
     private setupEventListeners() {
         // Add function for when bot is ready
         this._bot.on("ready", () => {
-            this._bot.user.setActivity("Huehuehue");
+            if (this._bot.user != null) {
+                this._bot.user.setActivity("Huehuehue");
+            }
+
             GuildAudioPlayer.loadPersistentGuilds();
         });
 

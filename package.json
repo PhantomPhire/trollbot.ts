@@ -4,8 +4,7 @@
   "description": "A Discord bot for trolling people.",
   "main": "trollBot.js",
   "dependencies": {
-    "discord.js": "^11.4.2",
-    "discord.js-commando": "^0.10.0",
+    "discord-shine": "0.0.3",
     "ffmpeg.js": "^3.1.9001",
     "node-gyp": "^3.8.0",
     "node-opus": "^0.3.1",
@@ -15,7 +14,8 @@
     "ytdl-core": "^0.14.4"
   },
   "devDependencies": {
-    "@types/node": "^10.10.10"
+    "@types/node": "^10.10.10",
+    "@types/ws": "^6.0.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
