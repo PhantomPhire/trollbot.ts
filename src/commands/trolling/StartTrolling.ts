@@ -26,8 +26,8 @@ class StartTrolling extends Command {
      * @param msg The message that was posted.
      */
     public hasPermission(msg: CommandoMessage): boolean {
-        if (!msg.guild) {
-            return false;
+        if (msg.member == undefined) {
+            return true;
         }
         return msg.member.hasPermission("ADMINISTRATOR");
     }

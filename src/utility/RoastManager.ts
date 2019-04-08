@@ -65,6 +65,9 @@ export abstract class RoastManager {
             this.addGuild(guild);
         }
 
+        if (!RoastManager._roasts.has(guild.id))
+        RoastManager.addGuild(guild);
+
         let roastGuild = RoastManager._roasts.get(guild.id);
         if (roastGuild!.size > 0) {
             let randomRoast = roastGuild!.random();
@@ -86,13 +89,15 @@ export abstract class RoastManager {
         }
 
         fs.readFile(TrollBotConstants.roastsPath, (error, data) => {
-            let roasts = data.toString().split(delimiter);
-            let newRoasts = new Collection<number, string>();
+            let roasts = JSON.parse(data.toString()) as Array<RoastsSaveState>;
             for (let i = 0; i < roasts.length; i++) {
-                newRoasts.set(i, roasts[i]);
-            }
+                let roastCollection = new Collection<number, string>();
+                for (let j = 0; j < roasts[i].Roasts.length; j++) {
+                    roastCollection.set(j, roasts[i].Roasts[j]);
+                }
 
-            RoastManager._roasts.set("181991219813941248", newRoasts);
+                RoastManager._roasts.set(roasts[i].GuildId, roastCollection);
+            }
         });
     }
 
@@ -110,7 +115,7 @@ export abstract class RoastManager {
             roastsSaveState.push(state);
         });
 
-        fs.writeFileSync(TrollBotConstants.rootPath + "roasts.json", JSON.stringify(roastsSaveState));
+        fs.writeFileSync(TrollBotConstants.roastsPath, JSON.stringify(roastsSaveState));
     }
 
     /**
