@@ -1,4 +1,4 @@
-import {Channel, Client, Guild, GuildMember, Message, TextChannel, User, VoiceChannel} from "discord.js";
+import {Channel, Client, Guild, GuildMember, Message, TextChannel, User, VoiceChannel, VoiceState} from "discord.js";
 import {CommandoClient} from "discord.js-commando";
 import {ClientAccess, GuildAudioPlayer, SoundFileManager} from "discord-shine";
 import {RoastManager} from "./RoastManager";
@@ -49,8 +49,8 @@ export abstract class Trolling {
         }
         Trolling._trackedMembers.set(member.guild.id, member.id);
 
-        if (member.voice.channel != null) {
-            Trolling.onMemberVoiceStateChanged(member, member);
+        if (member.voice != null && member.voice.channel != null) {
+            Trolling.onMemberVoiceStateChanged(member.voice, member.voice);
         }
     }
 
@@ -105,7 +105,7 @@ export abstract class Trolling {
      * @param oldMember The member's old voice state.
      * @param newMember The member's new voice state.
      */
-    private static onMemberVoiceStateChanged(oldMember: GuildMember, newMember: GuildMember) {
+    private static onMemberVoiceStateChanged(oldMember: VoiceState, newMember: VoiceState) {
         // Only react to tracked members
         if (newMember.guild == null ||
             !Trolling._trackedMembers.has(newMember.guild.id) ||
@@ -116,20 +116,20 @@ export abstract class Trolling {
         }
 
         // No need to do anything if we're already connected to the same channel
-        if (newMember.voice.channel != null && ClientAccess.client()!.voiceConnections.has(newMember.guild.id)) {
+        if (newMember.channel != null && ClientAccess.client()!.voiceConnections.has(newMember.guild.id)) {
             let connection = ClientAccess.client()!.voiceConnections.get(newMember.guild.id);
-            if (connection!.channel.id === newMember.voice.channel.id) {
+            if (connection!.channel.id === newMember.channel.id) {
                 return;
             }
         }
 
         let player = GuildAudioPlayer.getGuildAudioPlayer(newMember.guild.id);
         if (player != null) {
-            if (newMember.voice.channel == null) {
+            if (newMember.channel == null) {
                 player.leave();
             }
             else {
-                player.join(newMember.voice.channel);
+                player.join(newMember.channel);
             }
         }
     }
@@ -139,14 +139,14 @@ export abstract class Trolling {
      * @param oldMember The member's old voice state.
      * @param newMember The member's new voice state.
      */
-    private static trySendGreeting(oldMember: GuildMember, newMember: GuildMember) {
-        if (newMember.voice.channel != null &&
-            oldMember.voice.channel != newMember.voice.channel &&
-            !newMember.user.bot &&
+    private static trySendGreeting(oldMember: VoiceState, newMember: VoiceState) {
+        if (newMember.channel != null &&
+            oldMember.channel != newMember.channel &&
+            !newMember.member.user.bot &&
             !Trolling._trackedMembers.has(newMember.guild.id)) {
 
-            let player = GuildAudioPlayer.getGuildAudioPlayer(newMember.voice.channel.guild.id);
-            player.boundVoiceChannel = newMember.voice.channel;
+            let player = GuildAudioPlayer.getGuildAudioPlayer(newMember.channel.guild.id);
+            player.boundVoiceChannel = newMember.channel;
             player.joinAndPlay = true;
             let sound = SoundFileManager.getFileSound("oh_shiiit");
             if (sound != undefined) {
